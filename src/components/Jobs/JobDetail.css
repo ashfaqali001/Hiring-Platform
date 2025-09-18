@@ -1,0 +1,450 @@
+/* Job Detail Styles */
+.job-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.job-detail-header {
+  margin-bottom: 2rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #a0aec0;
+}
+
+.job-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.job-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.job-title-section h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.job-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Tabs */
+.job-detail-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.tab {
+  padding: 1rem 2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: #718096;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: #4a5568;
+  background-color: #f7fafc;
+}
+
+.tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  background-color: #f7fafc;
+}
+
+/* Tab Content */
+.job-detail-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+/* Overview Tab */
+.overview-grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.overview-section {
+  margin-bottom: 2rem;
+}
+
+.overview-section:last-child {
+  margin-bottom: 0;
+}
+
+.overview-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.overview-section p {
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.overview-section ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #4a5568;
+}
+
+.overview-section li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.job-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.info-value {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+/* Candidates Tab */
+.candidates-summary {
+  margin-bottom: 2rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.summary-card {
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.summary-card.rejected {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+}
+
+.summary-number {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.candidates-list h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.candidate-card {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.candidate-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.candidate-name {
+  font-weight: 600;
+  color: #2d3748;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.candidate-name:hover {
+  color: #667eea;
+}
+
+.candidate-email {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.stage-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stage-badge.applied {
+  background-color: #bee3f8;
+  color: #2b6cb0;
+}
+
+.stage-badge.screen {
+  background-color: #fbb6ce;
+  color: #b83280;
+}
+
+.stage-badge.tech {
+  background-color: #fbd38d;
+  color: #c05621;
+}
+
+.stage-badge.offer {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+
+.stage-badge.hired {
+  background-color: #9ae6b4;
+  color: #1a365d;
+}
+
+.stage-badge.rejected {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+.candidate-date {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+/* Assessments Tab */
+.assessments-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.assessment-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.assessment-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.assessment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.assessment-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.assessment-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.assessment-description {
+  color: #4a5568;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.assessment-meta {
+  display: flex;
+  gap: 1rem;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+/* Error and Loading States */
+.loading-spinner,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+}
+
+.error-state {
+  color: #718096;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.error-state h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #4a5568;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #718096;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  color: #4a5568;
+}
+
+.empty-state p {
+  margin: 0 0 1.5rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .job-header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .job-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .job-actions {
+    justify-content: flex-start;
+  }
+  
+  .job-detail-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .candidate-card {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    text-align: left;
+  }
+  
+  .assessment-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .assessment-actions {
+    justify-content: flex-start;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
