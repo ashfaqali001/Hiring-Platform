@@ -19,7 +19,9 @@ export const QuestionType = {
   MULTI_CHOICE: 'multi-choice',
   SHORT_TEXT: 'short-text',
   LONG_TEXT: 'long-text',
+  TEXT: 'text',
   NUMERIC: 'numeric',
+  RATING: 'rating',
   FILE_UPLOAD: 'file-upload'
 };
 

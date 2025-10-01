@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { QuestionType } from '../../types/index';
 import './AssessmentBuilder.css';
@@ -15,6 +15,7 @@ const AssessmentBuilder = () => {
   const [error, setError] = useState(null);
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [previewResponses, setPreviewResponses] = useState({});
+  const [saveAttempted, setSaveAttempted] = useState(false);
 
   // Load existing assessment if editing
   useEffect(() => {
@@ -89,18 +90,28 @@ const AssessmentBuilder = () => {
     updateQuestion(questionId, { options: newOptions });
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    // Prevent multiple saves
+    if (loading || saveAttempted) {
+      return;
+    }
+    
     try {
       setLoading(true);
+      setSaveAttempted(true);
       setError(null);
 
       if (!assessment.title.trim()) {
         setError('Assessment title is required');
+        setLoading(false);
+        setSaveAttempted(false);
         return;
       }
 
       if (assessment.questions.length === 0) {
         setError('At least one question is required');
+        setLoading(false);
+        setSaveAttempted(false);
         return;
       }
 
@@ -119,17 +130,23 @@ const AssessmentBuilder = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save assessment');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to save assessment (${response.status})`);
       }
 
+      const result = await response.json();
+      console.log('Assessment saved successfully:', result);
+      
       // Navigate back to job detail
       navigate(`/jobs/${jobId}`);
     } catch (err) {
+      console.error('Save assessment error:', err);
       setError(err.message);
+      setSaveAttempted(false);
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, saveAttempted, assessment, assessmentId, jobId, navigate]);
 
   const previewAssessment = () => {
     navigate(`/jobs/${jobId}/assessments/${assessmentId || 'new'}/form`);
@@ -149,68 +166,6 @@ const AssessmentBuilder = () => {
     }));
   };
 
-  const shouldShowQuestion = (question) => {
-    if (!question.conditional) return true;
-    
-    const { dependsOn, condition } = question.conditional;
-    const dependentResponse = previewResponses[dependsOn];
-    
-    if (!dependentResponse) return false;
-    
-    switch (condition.type) {
-      case 'equals':
-        return dependentResponse === condition.value;
-      case 'contains':
-        return Array.isArray(dependentResponse) 
-          ? dependentResponse.includes(condition.value)
-          : dependentResponse.toString().includes(condition.value);
-      case 'greater_than':
-        return Number(dependentResponse) > Number(condition.value);
-      case 'less_than':
-        return Number(dependentResponse) < Number(condition.value);
-      default:
-        return true;
-    }
-  };
-
-  const addConditionalLogic = (questionId) => {
-    setAssessment(prev => ({
-      ...prev,
-      questions: prev.questions.map(q => 
-        q.id === questionId 
-          ? { 
-              ...q, 
-              conditional: {
-                dependsOn: '',
-                condition: { type: 'equals', value: '' }
-              }
-            }
-          : q
-      )
-    }));
-  };
-
-  const updateConditionalLogic = (questionId, conditional) => {
-    setAssessment(prev => ({
-      ...prev,
-      questions: prev.questions.map(q => 
-        q.id === questionId 
-          ? { ...q, conditional }
-          : q
-      )
-    }));
-  };
-
-  const removeConditionalLogic = (questionId) => {
-    setAssessment(prev => ({
-      ...prev,
-      questions: prev.questions.map(q => 
-        q.id === questionId 
-          ? { ...q, conditional: null }
-          : q
-      )
-    }));
-  };
 
   if (loading) {
     return (
@@ -298,38 +253,44 @@ const AssessmentBuilder = () => {
         <div className="questions-section">
           <div className="section-header">
             <h2>Questions ({assessment.questions.length})</h2>
-            <div className="question-type-buttons">
-              <button 
-                className="btn btn-sm btn-secondary"
-                onClick={() => addQuestion(QuestionType.SINGLE_CHOICE)}
-              >
-                Single Choice
-              </button>
-              <button 
-                className="btn btn-sm btn-secondary"
-                onClick={() => addQuestion(QuestionType.MULTI_CHOICE)}
-              >
-                Multi Choice
-              </button>
-              <button 
-                className="btn btn-sm btn-secondary"
-                onClick={() => addQuestion(QuestionType.SHORT_TEXT)}
-              >
-                Short Text
-              </button>
-              <button 
-                className="btn btn-sm btn-secondary"
-                onClick={() => addQuestion(QuestionType.LONG_TEXT)}
-              >
-                Long Text
-              </button>
-              <button 
-                className="btn btn-sm btn-secondary"
-                onClick={() => addQuestion(QuestionType.NUMERIC)}
-              >
-                Numeric
-              </button>
-            </div>
+             <div className="question-type-buttons">
+               <button 
+                 className="btn btn-sm btn-secondary"
+                 onClick={() => addQuestion(QuestionType.SINGLE_CHOICE)}
+               >
+                 Single Choice
+               </button>
+               <button 
+                 className="btn btn-sm btn-secondary"
+                 onClick={() => addQuestion(QuestionType.MULTI_CHOICE)}
+               >
+                 Multi Choice
+               </button>
+               <button 
+                 className="btn btn-sm btn-secondary"
+                 onClick={() => addQuestion(QuestionType.SHORT_TEXT)}
+               >
+                 Short Text
+               </button>
+               <button 
+                 className="btn btn-sm btn-secondary"
+                 onClick={() => addQuestion(QuestionType.LONG_TEXT)}
+               >
+                 Long Text
+               </button>
+               <button 
+                 className="btn btn-sm btn-secondary"
+                 onClick={() => addQuestion(QuestionType.NUMERIC)}
+               >
+                 Numeric
+               </button>
+               <button 
+                 className="btn btn-sm btn-secondary"
+                 onClick={() => addQuestion(QuestionType.FILE_UPLOAD)}
+               >
+                 File Upload
+               </button>
+             </div>
           </div>
 
           {assessment.questions.length === 0 ? (
@@ -396,100 +357,17 @@ const AssessmentBuilder = () => {
                       </div>
                     )}
 
-                    <div className="question-settings">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={question.required}
-                          onChange={(e) => updateQuestion(question.id, { required: e.target.checked })}
-                        />
-                        Required question
-                      </label>
-                    </div>
+                     <div className="question-settings">
+                       <label className="checkbox-label">
+                         <input
+                           type="checkbox"
+                           checked={question.required}
+                           onChange={(e) => updateQuestion(question.id, { required: e.target.checked })}
+                         />
+                         Required question
+                       </label>
+                     </div>
 
-                    {/* Conditional Logic Section */}
-                    <div className="conditional-logic-section">
-                      <div className="conditional-header">
-                        <label>Conditional Logic</label>
-                        {!question.conditional ? (
-                          <button 
-                            className="btn btn-outline btn-sm"
-                            onClick={() => addConditionalLogic(question.id)}
-                          >
-                            Add Condition
-                          </button>
-                        ) : (
-                          <button 
-                            className="btn btn-danger btn-sm"
-                            onClick={() => removeConditionalLogic(question.id)}
-                          >
-                            Remove Condition
-                          </button>
-                        )}
-                      </div>
-                      
-                      {question.conditional && (
-                        <div className="conditional-settings">
-                          <div className="form-group">
-                            <label>Depends on question:</label>
-                            <select
-                              value={question.conditional.dependsOn}
-                              onChange={(e) => updateConditionalLogic(question.id, {
-                                ...question.conditional,
-                                dependsOn: e.target.value
-                              })}
-                              className="form-input"
-                            >
-                              <option value="">Select question...</option>
-                              {assessment.questions
-                                .filter(q => q.id !== question.id)
-                                .map(q => (
-                                  <option key={q.id} value={q.id}>
-                                    Q{assessment.questions.findIndex(qu => qu.id === q.id) + 1}: {q.question}
-                                  </option>
-                                ))}
-                            </select>
-                          </div>
-                          
-                          <div className="form-group">
-                            <label>Condition:</label>
-                            <select
-                              value={question.conditional.condition.type}
-                              onChange={(e) => updateConditionalLogic(question.id, {
-                                ...question.conditional,
-                                condition: {
-                                  ...question.conditional.condition,
-                                  type: e.target.value
-                                }
-                              })}
-                              className="form-input"
-                            >
-                              <option value="equals">Equals</option>
-                              <option value="contains">Contains</option>
-                              <option value="greater_than">Greater than</option>
-                              <option value="less_than">Less than</option>
-                            </select>
-                          </div>
-                          
-                          <div className="form-group">
-                            <label>Value:</label>
-                            <input
-                              type="text"
-                              value={question.conditional.condition.value}
-                              onChange={(e) => updateConditionalLogic(question.id, {
-                                ...question.conditional,
-                                condition: {
-                                  ...question.conditional.condition,
-                                  value: e.target.value
-                                }
-                              })}
-                              placeholder="Enter condition value..."
-                              className="form-input"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
               ))}
@@ -510,85 +388,95 @@ const AssessmentBuilder = () => {
                 <h2>{assessment.title || 'Untitled Assessment'}</h2>
                 <p>{assessment.description || 'No description provided'}</p>
                 
-                <div className="preview-questions">
-                  {assessment.questions.map((question, index) => {
-                    if (!shouldShowQuestion(question)) return null;
-                    
-                    return (
-                      <div key={question.id} className="preview-question">
-                        <label className="preview-question-label">
-                          Q{index + 1}: {question.question}
-                        </label>
-                        
-                        {question.type === QuestionType.TEXT && (
-                          <input
-                            type="text"
-                            value={previewResponses[question.id] || ''}
-                            onChange={(e) => handlePreviewResponseChange(question.id, e.target.value)}
-                            placeholder="Your answer..."
-                            className="form-input"
-                          />
-                        )}
-                        
-                        {question.type === QuestionType.SINGLE_CHOICE && (
-                          <div className="preview-options">
-                            {question.options.map((option, optionIndex) => (
-                              <label key={optionIndex} className="preview-option">
-                                <input
-                                  type="radio"
-                                  name={`preview-${question.id}`}
-                                  value={option}
-                                  checked={previewResponses[question.id] === option}
-                                  onChange={(e) => handlePreviewResponseChange(question.id, e.target.value)}
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {question.type === QuestionType.MULTI_CHOICE && (
-                          <div className="preview-options">
-                            {question.options.map((option, optionIndex) => (
-                              <label key={optionIndex} className="preview-option">
-                                <input
-                                  type="checkbox"
-                                  value={option}
-                                  checked={(previewResponses[question.id] || []).includes(option)}
-                                  onChange={(e) => {
-                                    const current = previewResponses[question.id] || [];
-                                    const updated = e.target.checked
-                                      ? [...current, option]
-                                      : current.filter(o => o !== option);
-                                    handlePreviewResponseChange(question.id, updated);
-                                  }}
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {question.type === QuestionType.RATING && (
-                          <div className="preview-rating">
-                            {[1, 2, 3, 4, 5].map(rating => (
-                              <label key={rating} className="preview-rating-option">
-                                <input
-                                  type="radio"
-                                  name={`preview-rating-${question.id}`}
-                                  value={rating}
-                                  checked={previewResponses[question.id] === rating}
-                                  onChange={(e) => handlePreviewResponseChange(question.id, parseInt(e.target.value))}
-                                />
-                                {rating}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                 <div className="preview-questions">
+                   {assessment.questions.map((question, index) => (
+                     <div key={question.id} className="preview-question">
+                       <label className="preview-question-label">
+                         Q{index + 1}: {question.question}
+                       </label>
+                       
+                       {question.type === QuestionType.SHORT_TEXT && (
+                         <input
+                           type="text"
+                           value={previewResponses[question.id] || ''}
+                           onChange={(e) => handlePreviewResponseChange(question.id, e.target.value)}
+                           placeholder="Your answer..."
+                           className="form-input"
+                         />
+                       )}
+                       
+                       {question.type === QuestionType.LONG_TEXT && (
+                         <textarea
+                           value={previewResponses[question.id] || ''}
+                           onChange={(e) => handlePreviewResponseChange(question.id, e.target.value)}
+                           placeholder="Your answer..."
+                           rows={4}
+                           className="form-textarea"
+                         />
+                       )}
+                       
+                       {question.type === QuestionType.NUMERIC && (
+                         <input
+                           type="number"
+                           value={previewResponses[question.id] || ''}
+                           onChange={(e) => handlePreviewResponseChange(question.id, e.target.value)}
+                           placeholder="Enter a number..."
+                           className="form-input"
+                         />
+                       )}
+                       
+                       {question.type === QuestionType.SINGLE_CHOICE && (
+                         <div className="preview-options">
+                           {question.options.map((option, optionIndex) => (
+                             <label key={optionIndex} className="preview-option">
+                               <input
+                                 type="radio"
+                                 name={`preview-${question.id}`}
+                                 value={option}
+                                 checked={previewResponses[question.id] === option}
+                                 onChange={(e) => handlePreviewResponseChange(question.id, e.target.value)}
+                               />
+                               {option}
+                             </label>
+                           ))}
+                         </div>
+                       )}
+                       
+                       {question.type === QuestionType.MULTI_CHOICE && (
+                         <div className="preview-options">
+                           {question.options.map((option, optionIndex) => (
+                             <label key={optionIndex} className="preview-option">
+                               <input
+                                 type="checkbox"
+                                 value={option}
+                                 checked={(previewResponses[question.id] || []).includes(option)}
+                                 onChange={(e) => {
+                                   const current = previewResponses[question.id] || [];
+                                   const updated = e.target.checked
+                                     ? [...current, option]
+                                     : current.filter(o => o !== option);
+                                   handlePreviewResponseChange(question.id, updated);
+                                 }}
+                               />
+                               {option}
+                             </label>
+                           ))}
+                         </div>
+                       )}
+                       
+                       {question.type === QuestionType.FILE_UPLOAD && (
+                         <div className="preview-file-upload">
+                           <input
+                             type="file"
+                             onChange={(e) => handlePreviewResponseChange(question.id, e.target.files[0]?.name || '')}
+                             className="form-input"
+                           />
+                           <p className="file-upload-note">📎 File upload (stub - not functional)</p>
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                 </div>
               </div>
             </div>
           </div>

@@ -16,7 +16,9 @@ const AssessmentForm = () => {
   const loadAssessment = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('Loading assessment:', { jobId, assessmentId });
       const response = await fetch(`/api/assessments/${jobId}/${assessmentId}`);
+      console.log('Assessment response:', response.status, response.ok);
       if (response.ok) {
         const data = await response.json();
         setAssessment(data);
@@ -31,10 +33,15 @@ const AssessmentForm = () => {
         });
         setResponses(initialResponses);
       } else {
-        setError('Assessment not found');
+        if (response.status === 404) {
+          setError('Assessment not found. It may have been deleted or the link is incorrect.');
+        } else {
+          setError(`Failed to load assessment (${response.status})`);
+        }
       }
     } catch (err) {
-      setError('Failed to load assessment');
+      console.error('Load assessment error:', err);
+      setError('Failed to load assessment. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -88,12 +95,8 @@ const AssessmentForm = () => {
         }
       }
       
-      // Additional validation based on question type
+      // Basic validation only
       if (response && question.validation) {
-        if (question.validation.minLength && response.length < question.validation.minLength) {
-          errors[question.id] = `Minimum ${question.validation.minLength} characters required`;
-        }
-        
         if (question.validation.pattern && !new RegExp(question.validation.pattern).test(response)) {
           errors[question.id] = 'Invalid format';
         }
@@ -218,6 +221,17 @@ const AssessmentForm = () => {
               placeholder="Enter a number..."
               className="form-input"
             />
+          )}
+
+          {question.type === QuestionType.FILE_UPLOAD && (
+            <div className="file-upload-group">
+              <input
+                type="file"
+                onChange={(e) => handleResponseChange(question.id, e.target.files[0]?.name || '')}
+                className="file-input"
+              />
+              <p className="file-upload-note">📎 File upload (stub - not functional)</p>
+            </div>
           )}
         </div>
 

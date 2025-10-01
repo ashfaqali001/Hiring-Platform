@@ -31,6 +31,12 @@ const Layout = () => {
           >
             Candidates
           </Link>
+          <Link 
+            to="/jobs/1/assessments/new/builder" 
+            className={`nav-link ${isActiveRoute('/assessments') ? 'active' : ''}`}
+          >
+            Assessments
+          </Link>
         </div>
       </nav>
       

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { List } from 'react-window';
-import { InfiniteLoader } from 'react-window-infinite-loader';
+// import { List } from 'react-window';
+// import { InfiniteLoader } from 'react-window-infinite-loader';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import CandidateListItem from './CandidateListItem';
@@ -339,31 +339,26 @@ const CandidatesBoardSimplified = () => {
               <p>Candidates will appear here as they apply for jobs</p>
             </div>
           ) : (
-            <InfiniteLoader
-              isItemLoaded={isItemLoaded}
-              itemCount={hasNextPage ? safeCandidates.length + 1 : safeCandidates.length}
-              loadMoreItems={loadMoreItems}
-            >
-              {({ onItemsRendered, ref }) => (
-                <List
-                  ref={ref}
-                  height={600}
-                  itemCount={safeCandidates.length}
-                  itemSize={ITEM_HEIGHT}
-                  onItemsRendered={onItemsRendered}
-                  className="candidates-virtual-list"
-                >
-                  {({ index, style }) => (
-                    <div style={style}>
-                      <CandidateListItem
-                        candidate={safeCandidates[index]}
-                        formatDate={formatDate}
-                      />
-                    </div>
-                  )}
-                </List>
+            <div className="candidates-list">
+              {safeCandidates.map(candidate => (
+                <CandidateListItem
+                  key={candidate.id}
+                  candidate={candidate}
+                  formatDate={formatDate}
+                />
+              ))}
+              {hasNextPage && (
+                <div className="load-more-section">
+                  <button 
+                    className="btn btn-outline"
+                    onClick={() => loadMoreItems()}
+                    disabled={loading}
+                  >
+                    {loading ? 'Loading...' : 'Load More'}
+                  </button>
+                </div>
               )}
-            </InfiniteLoader>
+            </div>
           )}
         </div>
       ) : (

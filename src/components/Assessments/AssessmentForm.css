@@ -325,3 +325,28 @@
     padding: 15px;
   }
 }
+
+.file-upload-group {
+  margin-top: 10px;
+}
+
+.file-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.file-input:hover {
+  border-color: #3b82f6;
+}
+
+.file-upload-note {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 5px;
+  font-style: italic;
+}

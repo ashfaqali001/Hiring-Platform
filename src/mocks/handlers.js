@@ -303,12 +303,57 @@ export const handlers = [
     await simulateLatency();
     
     try {
+      console.log('Getting assessment:', params.assessmentId, 'for job:', params.jobId);
       const assessment = await dbOperations.getAssessmentById(parseInt(params.assessmentId));
+      console.log('Found assessment:', assessment);
       if (!assessment) {
+        console.log('Assessment not found, returning 404');
         return HttpResponse.json({ error: 'Assessment not found' }, { status: 404 });
       }
       return HttpResponse.json(assessment);
     } catch (error) {
+      console.error('Error getting assessment:', error);
+      return serverError();
+    }
+  }),
+
+  http.post('/api/assessments/:jobId', async ({ params, request }) => {
+    await simulateLatency();
+    
+    if (simulateErrorRate()) {
+      return serverError();
+    }
+    
+    try {
+      const assessmentData = await request.json();
+      console.log('Creating assessment:', assessmentData);
+      console.log('Job ID:', params.jobId);
+      
+      // Check if assessment with same title already exists for this job
+      const existingAssessments = await dbOperations.getAssessmentsByJob(parseInt(params.jobId));
+      const duplicateAssessment = existingAssessments.find(a => a.title === assessmentData.title);
+      
+      if (duplicateAssessment) {
+        console.log('Assessment with same title already exists, updating instead');
+        const updatedAssessment = await dbOperations.updateAssessment(duplicateAssessment.id, {
+          ...assessmentData,
+          updatedAt: new Date()
+        });
+        return HttpResponse.json({ success: true, assessment: updatedAssessment, message: 'Assessment updated successfully' });
+      }
+      
+      const newAssessment = await dbOperations.createAssessment({
+        ...assessmentData,
+        id: Math.floor(Math.random() * 1000000), // Generate a random ID
+        jobId: parseInt(params.jobId),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      console.log('Assessment created:', newAssessment);
+      return HttpResponse.json({ success: true, assessment: newAssessment, message: 'Assessment created successfully' });
+    } catch (error) {
+      console.error('Error creating assessment:', error);
       return serverError();
     }
   }),
