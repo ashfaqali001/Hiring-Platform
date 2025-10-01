@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { db } from '../../database/db';
 import './CandidateProfile.css';
 
 const CandidateProfile = () => {
@@ -21,9 +22,54 @@ const CandidateProfile = () => {
         // Fetch candidate details
         const candidateResponse = await fetch(`/api/candidates/${candidateId}`);
         console.log('Candidate response:', candidateResponse.status, candidateResponse.ok);
+        
+        // Check if we got HTML instead of JSON (MSW not working)
+        const contentType = candidateResponse.headers.get('content-type');
+        console.log('Response content-type:', contentType);
+        
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Received non-JSON response, MSW might not be working');
+          console.log('Falling back to direct database access...');
+          
+          // Fallback: fetch directly from database
+          const candidate = await db.candidates.get(parseInt(candidateId));
+          if (!candidate) {
+            // Check if database has any candidates
+            const allCandidates = await db.candidates.toArray();
+            console.log('Database has', allCandidates.length, 'candidates');
+            console.log('Available candidate IDs:', allCandidates.slice(0, 10).map(c => c.id));
+            
+            if (allCandidates.length === 0) {
+              throw new Error('No candidates found in database. Please refresh the page to reinitialize.');
+            } else {
+              throw new Error(`Candidate with ID ${candidateId} not found. Available IDs: ${allCandidates.slice(0, 5).map(c => c.id).join(', ')}...`);
+            }
+          }
+          
+          setCandidate(candidate);
+          setTimeline(candidate.timeline || []);
+          setNotes(candidate.notes || []);
+          return;
+        }
         if (!candidateResponse.ok) {
           if (candidateResponse.status === 404) {
-            throw new Error('Candidate not found');
+            // Try direct database access as fallback
+            console.log('API returned 404, trying direct database access...');
+            const candidate = await db.candidates.get(parseInt(candidateId));
+            if (!candidate) {
+              const allCandidates = await db.candidates.toArray();
+              console.log('Database has', allCandidates.length, 'candidates');
+              if (allCandidates.length === 0) {
+                throw new Error('No candidates found in database. Please refresh the page to reinitialize.');
+              } else {
+                throw new Error(`Candidate with ID ${candidateId} not found. Available IDs: ${allCandidates.slice(0, 5).map(c => c.id).join(', ')}...`);
+              }
+            }
+            
+            setCandidate(candidate);
+            setTimeline(candidate.timeline || []);
+            setNotes(candidate.notes || []);
+            return;
           } else {
             throw new Error(`Failed to load candidate (${candidateResponse.status})`);
           }
