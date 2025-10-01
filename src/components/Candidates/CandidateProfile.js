@@ -16,11 +16,25 @@ const CandidateProfile = () => {
     const fetchCandidate = async () => {
       try {
         setLoading(true);
+        console.log('Fetching candidate:', candidateId);
         
         // Fetch candidate details
         const candidateResponse = await fetch(`/api/candidates/${candidateId}`);
-        if (!candidateResponse.ok) throw new Error('Candidate not found');
-        const candidateData = await candidateResponse.json();
+        console.log('Candidate response:', candidateResponse.status, candidateResponse.ok);
+        if (!candidateResponse.ok) {
+          if (candidateResponse.status === 404) {
+            throw new Error('Candidate not found');
+          } else {
+            throw new Error(`Failed to load candidate (${candidateResponse.status})`);
+          }
+        }
+        let candidateData;
+        try {
+          candidateData = await candidateResponse.json();
+        } catch (jsonError) {
+          console.error('JSON parsing error:', jsonError);
+          throw new Error('Invalid response format from server');
+        }
         setCandidate(candidateData);
         
         // Fetch timeline

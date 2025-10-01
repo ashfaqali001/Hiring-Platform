@@ -107,6 +107,10 @@ export const dbOperations = {
     return await db.candidates.get(id);
   },
 
+  async getAllCandidates() {
+    return await db.candidates.toArray();
+  },
+
   async createCandidate(candidate) {
     return await db.candidates.add(candidate);
   },

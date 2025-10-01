@@ -222,12 +222,22 @@ export const handlers = [
     await simulateLatency();
     
     try {
+      console.log('Getting candidate:', params.id);
+      
+      // First, let's check if we have any candidates in the database
+      const allCandidates = await dbOperations.getAllCandidates();
+      console.log('Total candidates in database:', allCandidates.length);
+      console.log('First few candidate IDs:', allCandidates.slice(0, 5).map(c => c.id));
+      
       const candidate = await dbOperations.getCandidateById(parseInt(params.id));
+      console.log('Found candidate:', candidate);
       if (!candidate) {
+        console.log('Candidate not found, returning 404');
         return HttpResponse.json({ error: 'Candidate not found' }, { status: 404 });
       }
       return HttpResponse.json(candidate);
     } catch (error) {
+      console.error('Error getting candidate:', error);
       return serverError();
     }
   }),
