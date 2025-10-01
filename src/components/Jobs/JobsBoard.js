@@ -146,14 +146,22 @@ const JobsBoard = () => {
     if (!window.confirm('Are you sure you want to delete this job?')) return;
 
     try {
+      console.log('Deleting job:', jobId);
       const response = await fetch(`/api/jobs/${jobId}`, {
         method: 'DELETE'
       });
       
-      if (!response.ok) throw new Error('Failed to delete job');
+      console.log('Delete response:', response.status, response.ok);
       
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to delete job (${response.status})`);
+      }
+      
+      console.log('Job deleted successfully, refreshing list...');
       await fetchJobs();
     } catch (err) {
+      console.error('Delete job error:', err);
       setError(err.message);
     }
   };

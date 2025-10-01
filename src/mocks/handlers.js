@@ -165,6 +165,24 @@ export const handlers = [
     }
   }),
 
+  http.delete('/api/jobs/:id', async ({ params }) => {
+    await simulateLatency();
+    
+    if (simulateErrorRate()) {
+      return serverError();
+    }
+    
+    try {
+      console.log('Deleting job:', params.id);
+      await dbOperations.deleteJob(parseInt(params.id));
+      console.log('Job deleted successfully');
+      return HttpResponse.json({ success: true, message: 'Job deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      return serverError();
+    }
+  }),
+
   // Candidates endpoints
   http.get('/api/candidates', async ({ request }) => {
     await simulateLatency();
