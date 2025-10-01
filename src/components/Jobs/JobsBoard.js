@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import SortableJobCard from './SortableJobCard';
 import JobModal from './JobModal';
 import './JobsBoard.css';
@@ -403,9 +402,8 @@ const JobsBoard = () => {
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            modifiers={[restrictToVerticalAxis]}
           >
-            <SortableContext items={filteredJobs.map(job => job.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={filteredJobs.map(job => job.id)} strategy={rectSortingStrategy}>
               <div className={`jobs-grid ${isReordering ? 'reordering' : ''}`}>
                 {filteredJobs.map((job) => (
                   <SortableJobCard

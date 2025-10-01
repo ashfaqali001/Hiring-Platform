@@ -149,16 +149,22 @@
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
 }
 
 .search-icon {
@@ -166,7 +172,13 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #a0aec0;
+  color: #6b7280;
+  font-size: 1.1rem;
+  transition: color 0.2s ease;
+}
+
+.search-container:hover .search-icon {
+  color: #3b82f6;
 }
 
 .filters {
@@ -176,16 +188,22 @@
 
 .filter-select {
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   background-color: white;
   cursor: pointer;
-  transition: border-color 0.3s ease;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-select:hover {
+  border-color: #9ca3af;
 }
 
 /* Jobs List */
