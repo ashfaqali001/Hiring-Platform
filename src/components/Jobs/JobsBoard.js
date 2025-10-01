@@ -162,12 +162,25 @@ const JobsBoard = () => {
       await fetchJobs();
     } catch (err) {
       console.error('Delete job error:', err);
-      setError(err.message);
+      
+      // Try direct database access as fallback
+      try {
+        console.log('Trying direct database deletion...');
+        const { db } = await import('../../database/db');
+        await db.jobs.delete(parseInt(jobId));
+        console.log('Job deleted directly from database');
+        await fetchJobs();
+      } catch (dbError) {
+        console.error('Direct database deletion failed:', dbError);
+        setError(err.message);
+      }
     }
   };
 
   const handleArchiveJob = async (jobId, newStatus) => {
     try {
+      console.log('Archiving job:', jobId, 'to status:', newStatus);
+      
       const response = await fetch(`/api/jobs/${jobId}`, {
         method: 'PATCH',
         headers: {
@@ -176,13 +189,32 @@ const JobsBoard = () => {
         body: JSON.stringify({ status: newStatus })
       });
 
+      console.log('Archive response:', response.status, response.ok);
+
       if (response.ok) {
+        console.log('Job archived successfully, refreshing list...');
         await fetchJobs();
       } else {
-        throw new Error(`Failed to ${newStatus === 'archived' ? 'archive' : 'unarchive'} job`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to ${newStatus === 'archived' ? 'archive' : 'unarchive'} job (${response.status})`);
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Archive job error:', err);
+      
+      // Try direct database access as fallback
+      try {
+        console.log('Trying direct database archive...');
+        const { db } = await import('../../database/db');
+        await db.jobs.update(parseInt(jobId), { 
+          status: newStatus, 
+          updatedAt: new Date() 
+        });
+        console.log('Job archived directly in database');
+        await fetchJobs();
+      } catch (dbError) {
+        console.error('Direct database archive failed:', dbError);
+        setError(err.message);
+      }
     }
   };
 

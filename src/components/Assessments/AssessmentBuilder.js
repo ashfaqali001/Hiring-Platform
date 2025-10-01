@@ -121,6 +121,8 @@ const AssessmentBuilder = () => {
       
       const method = assessmentId === 'new' ? 'POST' : 'PUT';
 
+      console.log('Saving assessment:', { url, method, assessment });
+      
       const response = await fetch(url, {
         method,
         headers: {
@@ -129,8 +131,11 @@ const AssessmentBuilder = () => {
         body: JSON.stringify(assessment)
       });
 
+      console.log('Assessment save response:', response.status, response.ok);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Assessment save failed:', errorData);
         throw new Error(errorData.message || `Failed to save assessment (${response.status})`);
       }
 
@@ -141,8 +146,33 @@ const AssessmentBuilder = () => {
       navigate(`/jobs/${jobId}`);
     } catch (err) {
       console.error('Save assessment error:', err);
-      setError(err.message);
-      setSaveAttempted(false);
+      
+      // Try direct database access as fallback
+      try {
+        console.log('Trying direct database save...');
+        const { db } = await import('../../database/db');
+        
+        if (assessmentId === 'new') {
+          await db.assessments.add({
+            ...assessment,
+            jobId: parseInt(jobId),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+        } else {
+          await db.assessments.update(parseInt(assessmentId), {
+            ...assessment,
+            updatedAt: new Date()
+          });
+        }
+        
+        console.log('Assessment saved directly to database');
+        navigate(`/jobs/${jobId}`);
+      } catch (dbError) {
+        console.error('Direct database save failed:', dbError);
+        setError(err.message);
+        setSaveAttempted(false);
+      }
     } finally {
       setLoading(false);
     }

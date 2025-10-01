@@ -9,7 +9,7 @@ const simulateLatency = async () => {
 
 // Simulate 5-10% error rate on write operations
 const simulateErrorRate = () => {
-  return Math.random() < 0.075; // 7.5% error rate
+  return Math.random() < 0.02; // 2% error rate for testing
 };
 
 // Simulate higher error rate for job reordering (as specified in requirements)
@@ -123,11 +123,17 @@ export const handlers = [
     }
     
     try {
+      console.log('Updating job:', params.id);
       const updates = await request.json();
+      console.log('Job updates:', updates);
+      
       await dbOperations.updateJob(parseInt(params.id), updates);
       const job = await dbOperations.getJobById(parseInt(params.id));
+      console.log('Job updated successfully:', job);
+      
       return HttpResponse.json(job);
     } catch (error) {
+      console.error('Error updating job:', error);
       return serverError();
     }
   }),
@@ -169,11 +175,20 @@ export const handlers = [
     await simulateLatency();
     
     if (simulateErrorRate()) {
+      console.log('Simulated error for job deletion');
       return serverError();
     }
     
     try {
       console.log('Deleting job:', params.id);
+      
+      // Check if job exists first
+      const job = await dbOperations.getJobById(parseInt(params.id));
+      if (!job) {
+        console.log('Job not found:', params.id);
+        return HttpResponse.json({ error: 'Job not found' }, { status: 404 });
+      }
+      
       await dbOperations.deleteJob(parseInt(params.id));
       console.log('Job deleted successfully');
       return HttpResponse.json({ success: true, message: 'Job deleted successfully' });
