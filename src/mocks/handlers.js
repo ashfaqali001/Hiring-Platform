@@ -414,10 +414,16 @@ export const handlers = [
     }
     
     try {
+      console.log('Adding note for candidate:', params.id);
       const noteData = await request.json();
-      await dbOperations.addCandidateNote(parseInt(params.id), noteData);
+      console.log('Note data:', noteData);
+      
+      const result = await dbOperations.addCandidateNote(parseInt(params.id), noteData);
+      console.log('Note added to database:', result);
+      
       return HttpResponse.json({ success: true, message: 'Note added successfully' });
     } catch (error) {
+      console.error('Error adding note:', error);
       return serverError();
     }
   })

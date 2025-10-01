@@ -148,11 +148,14 @@ const CandidateProfile = () => {
         mentions: extractMentions(newNote)
       };
 
+      console.log('Adding note:', note);
+
       // Add note locally first
       setNotes(prev => [note, ...prev]);
       setNewNote('');
 
       // Send to server
+      console.log('Sending note to server...');
       const response = await fetch(`/api/candidates/${candidateId}/notes`, {
         method: 'POST',
         headers: {
@@ -161,12 +164,30 @@ const CandidateProfile = () => {
         body: JSON.stringify(note)
       });
 
+      console.log('Note response:', response.status, response.ok);
+
       if (!response.ok) {
-        // Rollback on failure
-        setNotes(prev => prev.filter(n => n.id !== note.id));
+        console.error('Failed to save note to server, trying direct database access...');
+        
+        // Try direct database access as fallback
+        try {
+          await db.candidates.update(parseInt(candidateId), {
+            notes: [...notes, note],
+            updatedAt: new Date()
+          });
+          console.log('Note saved directly to database');
+        } catch (dbError) {
+          console.error('Failed to save note to database:', dbError);
+          // Rollback on failure
+          setNotes(prev => prev.filter(n => n.id !== note.id));
+          alert('Failed to save note. Please try again.');
+        }
+      } else {
+        console.log('Note saved successfully');
       }
     } catch (err) {
       console.error('Failed to add note:', err);
+      alert('Failed to add note. Please try again.');
     }
   };
 
