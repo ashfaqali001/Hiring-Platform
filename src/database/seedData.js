@@ -1,12 +1,48 @@
-import { 
-  createJob, 
-  createCandidate, 
-  createAssessment, 
-  createQuestion,
-  JobStatus,
-  CandidateStage,
-  QuestionType
-} from '../types/index.js';
+// Safely import types with fallbacks
+let createJob, createCandidate, createAssessment, JobStatus, CandidateStage, QuestionType;
+
+try {
+  const typesModule = require('../types/index.js');
+  createJob = typesModule.createJob;
+  createCandidate = typesModule.createCandidate;
+  createAssessment = typesModule.createAssessment;
+  JobStatus = typesModule.JobStatus;
+  CandidateStage = typesModule.CandidateStage;
+  QuestionType = typesModule.QuestionType;
+} catch (error) {
+  console.error('Error importing types:', error);
+  // Provide fallbacks
+  createJob = (data) => data;
+  createCandidate = (data) => data;
+  createAssessment = (data) => data;
+  JobStatus = { ACTIVE: 'active', ARCHIVED: 'archived' };
+  CandidateStage = {
+    APPLIED: 'applied',
+    SCREEN: 'screen',
+    TECH: 'tech',
+    OFFER: 'offer',
+    HIRED: 'hired',
+    REJECTED: 'rejected'
+  };
+  QuestionType = {
+    SINGLE_CHOICE: 'single-choice',
+    MULTI_CHOICE: 'multi-choice',
+    SHORT_TEXT: 'short-text',
+    LONG_TEXT: 'long-text',
+    NUMERIC: 'numeric',
+    FILE_UPLOAD: 'file-upload'
+  };
+}
+
+// Ensure CandidateStage is available
+const CANDIDATE_STAGES = CandidateStage || {
+  APPLIED: 'applied',
+  SCREEN: 'screen',
+  TECH: 'tech',
+  OFFER: 'offer',
+  HIRED: 'hired',
+  REJECTED: 'rejected'
+};
 
 // Generate unique IDs
 let idCounter = 1;
@@ -83,7 +119,7 @@ const lastNames = [
   'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts'
 ];
 
-const stages = Object.values(CandidateStage);
+const stages = Object.values(CANDIDATE_STAGES || {});
 
 // Generate 1000 candidates randomly assigned to jobs
 export const generateCandidates = (jobs) => {

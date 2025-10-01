@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-const SortableJobCard = ({ job, onEdit, onDelete, formatDate, getStatusBadgeClass }) => {
+const SortableJobCard = ({ job, onEdit, onDelete, onArchive, formatDate, getStatusBadgeClass }) => {
   const {
     attributes,
     listeners,
@@ -45,6 +45,12 @@ const SortableJobCard = ({ job, onEdit, onDelete, formatDate, getStatusBadgeClas
             onClick={() => onEdit(job)}
           >
             Edit
+          </button>
+          <button
+            className={`btn btn-sm ${job.status === 'active' ? 'btn-warning' : 'btn-success'}`}
+            onClick={() => onArchive(job.id, job.status === 'active' ? 'archived' : 'active')}
+          >
+            {job.status === 'active' ? 'Archive' : 'Unarchive'}
           </button>
           <button
             className="btn btn-danger btn-sm"

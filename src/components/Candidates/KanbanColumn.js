@@ -8,12 +8,15 @@ const KanbanColumn = ({ stage, candidates, formatDate }) => {
     id: stage.id,
   });
 
+  // Ensure candidates is always an array
+  const safeCandidates = Array.isArray(candidates) ? candidates : [];
+
   return (
     <div className="kanban-column">
       <div className="kanban-header" style={{ borderTopColor: stage.color }}>
         <div className="stage-info">
           <h3 className="stage-title">{stage.title}</h3>
-          <span className="stage-count">({candidates.length})</span>
+          <span className="stage-count">({safeCandidates.length})</span>
         </div>
         <div 
           className="stage-indicator"
@@ -25,13 +28,13 @@ const KanbanColumn = ({ stage, candidates, formatDate }) => {
         ref={setNodeRef}
         className={`kanban-content ${isOver ? 'drag-over' : ''}`}
       >
-        <SortableContext items={candidates.map(c => c.id)} strategy={verticalListSortingStrategy}>
-          {candidates.length === 0 ? (
+        <SortableContext items={safeCandidates.map(c => c.id)} strategy={verticalListSortingStrategy}>
+          {safeCandidates.length === 0 ? (
             <div className="kanban-empty">
               <span className="empty-text">No candidates</span>
             </div>
           ) : (
-            candidates.map(candidate => (
+            safeCandidates.map(candidate => (
               <KanbanCard
                 key={candidate.id}
                 candidate={candidate}

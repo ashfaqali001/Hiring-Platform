@@ -21,7 +21,30 @@ export const db = new TalentFlowDB();
 export const dbOperations = {
   // Jobs
   async getAllJobs() {
-    return await db.jobs.orderBy('order').toArray();
+    try {
+      // Ensure database is open
+      if (!db.isOpen()) {
+        await db.open();
+      }
+      const jobs = await db.jobs.orderBy('order').toArray();
+      // Ensure all jobs have required properties
+      return (jobs || []).map(job => ({
+        id: job.id || Date.now(),
+        title: job.title || 'Untitled Job',
+        slug: job.slug || 'untitled-job',
+        status: job.status || 'active',
+        description: job.description || '',
+        requirements: job.requirements || [],
+        tags: job.tags || [],
+        order: job.order || 0,
+        createdAt: job.createdAt || new Date(),
+        updatedAt: job.updatedAt || new Date(),
+        ...job
+      }));
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      return [];
+    }
   },
 
   async getJobById(id) {
@@ -54,7 +77,26 @@ export const dbOperations = {
 
   // Candidates
   async getAllCandidates() {
-    return await db.candidates.toArray();
+    try {
+      // Ensure database is open
+      if (!db.isOpen()) {
+        await db.open();
+      }
+      const candidates = await db.candidates.toArray();
+      // Ensure all candidates have required properties
+      return (candidates || []).map(candidate => ({
+        id: candidate.id || Date.now(),
+        name: candidate.name || 'Unknown',
+        email: candidate.email || 'unknown@email.com',
+        stage: candidate.stage || 'applied',
+        jobId: candidate.jobId || 1,
+        appliedAt: candidate.appliedAt || new Date(),
+        ...candidate
+      }));
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      return [];
+    }
   },
 
   async getCandidatesByJob(jobId) {

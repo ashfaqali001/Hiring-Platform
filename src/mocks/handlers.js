@@ -12,6 +12,11 @@ const simulateErrorRate = () => {
   return Math.random() < 0.075; // 7.5% error rate
 };
 
+// Simulate higher error rate for job reordering (as specified in requirements)
+const simulateReorderErrorRate = () => {
+  return Math.random() < 0.15; // 15% error rate for reordering
+};
+
 // Error responses
 const serverError = () => {
   return HttpResponse.json(
@@ -35,11 +40,16 @@ export const handlers = [
     try {
       let jobs = await dbOperations.getAllJobs();
       
+      // Ensure jobs is an array
+      if (!Array.isArray(jobs)) {
+        jobs = [];
+      }
+      
       // Filter by search
       if (search) {
         jobs = jobs.filter(job => 
-          job.title.toLowerCase().includes(search.toLowerCase()) ||
-          job.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+          job.title?.toLowerCase().includes(search.toLowerCase()) ||
+          (job.tags && job.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
         );
       }
       
@@ -125,7 +135,7 @@ export const handlers = [
   http.patch('/api/jobs/:id/reorder', async ({ params, request }) => {
     await simulateLatency();
     
-    if (simulateErrorRate()) {
+    if (simulateReorderErrorRate()) {
       return HttpResponse.json(
         { error: 'Failed to reorder', message: 'Please try again' },
         { status: 500 }
@@ -168,11 +178,16 @@ export const handlers = [
     try {
       let candidates = await dbOperations.getAllCandidates();
       
+      // Ensure candidates is an array
+      if (!Array.isArray(candidates)) {
+        candidates = [];
+      }
+      
       // Filter by search (name/email)
       if (search) {
         candidates = candidates.filter(candidate => 
-          candidate.name.toLowerCase().includes(search.toLowerCase()) ||
-          candidate.email.toLowerCase().includes(search.toLowerCase())
+          candidate.name?.toLowerCase().includes(search.toLowerCase()) ||
+          candidate.email?.toLowerCase().includes(search.toLowerCase())
         );
       }
       
@@ -330,6 +345,23 @@ export const handlers = [
         submittedAt: new Date()
       });
       return HttpResponse.json({ success: true, message: 'Response saved successfully' });
+    } catch (error) {
+      return serverError();
+    }
+  }),
+
+  // Candidate notes endpoints
+  http.post('/api/candidates/:id/notes', async ({ params, request }) => {
+    await simulateLatency();
+    
+    if (simulateErrorRate()) {
+      return serverError();
+    }
+    
+    try {
+      const noteData = await request.json();
+      await dbOperations.addCandidateNote(parseInt(params.id), noteData);
+      return HttpResponse.json({ success: true, message: 'Note added successfully' });
     } catch (error) {
       return serverError();
     }

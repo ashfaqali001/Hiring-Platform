@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
@@ -8,7 +7,6 @@ import JobModal from './JobModal';
 import './JobsBoard.css';
 
 const JobsBoard = () => {
-  const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,35 +32,90 @@ const JobsBoard = () => {
     })
   );
 
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        pageSize: pageSize.toString(),
-        ...(searchTerm && { search: searchTerm }),
-        ...(statusFilter && { status: statusFilter }),
-        ...(sortBy && { sort: sortBy })
-      });
-
-      const response = await fetch(`/api/jobs?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch jobs');
-      
-      const data = await response.json();
-      setJobs(data.jobs);
-      setFilteredJobs(data.jobs);
-      setTotalPages(data.pagination.totalPages);
       setError(null);
+      
+      // Try MSW API first
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          pageSize: pageSize.toString(),
+          ...(searchTerm && { search: searchTerm }),
+          ...(statusFilter && { status: statusFilter }),
+          ...(sortBy && { sort: sortBy })
+        });
+
+        const response = await fetch(`/api/jobs?${params}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Response is not JSON. MSW might not be running.');
+        }
+        
+        const data = await response.json();
+        
+        // Ensure data structure is correct
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid response format');
+        }
+        
+        setFilteredJobs(data.jobs || []);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setError(null);
+        return;
+      } catch (apiError) {
+        console.warn('MSW API failed, trying direct database access:', apiError.message);
+        
+        // Fallback to direct database access
+        const { dbOperations } = await import('../../database/db');
+        let allJobs = await dbOperations.getAllJobs();
+        
+        // Apply filters
+        if (searchTerm) {
+          allJobs = allJobs.filter(job => 
+            job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (job.tags && job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+          );
+        }
+        
+        if (statusFilter) {
+          allJobs = allJobs.filter(job => job.status === statusFilter);
+        }
+        
+        // Apply sorting
+        if (sortBy === 'title') {
+          allJobs.sort((a, b) => a.title.localeCompare(b.title));
+        } else if (sortBy === 'createdAt') {
+          allJobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+        
+        // Apply pagination
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedJobs = allJobs.slice(startIndex, startIndex + pageSize);
+        
+        setFilteredJobs(paginatedJobs);
+        setTotalPages(Math.ceil(allJobs.length / pageSize));
+        setError(null);
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Error fetching jobs:', err);
+      setError(`Failed to load jobs: ${err.message}`);
+      setFilteredJobs([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, statusFilter, sortBy]);
 
   useEffect(() => {
     fetchJobs();
-  }, [currentPage, searchTerm, statusFilter, sortBy]);
+  }, [fetchJobs]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -100,6 +153,26 @@ const JobsBoard = () => {
       if (!response.ok) throw new Error('Failed to delete job');
       
       await fetchJobs();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleArchiveJob = async (jobId, newStatus) => {
+    try {
+      const response = await fetch(`/api/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        await fetchJobs();
+      } else {
+        throw new Error(`Failed to ${newStatus === 'archived' ? 'archive' : 'unarchive'} job`);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -174,11 +247,15 @@ const JobsBoard = () => {
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   if (loading) {
@@ -266,6 +343,7 @@ const JobsBoard = () => {
                     job={job}
                     onEdit={handleEditJob}
                     onDelete={handleDeleteJob}
+                    onArchive={handleArchiveJob}
                     formatDate={formatDate}
                     getStatusBadgeClass={getStatusBadgeClass}
                   />

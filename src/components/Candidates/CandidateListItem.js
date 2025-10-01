@@ -4,73 +4,42 @@ import { Link } from 'react-router-dom';
 const CandidateListItem = ({ candidate, formatDate }) => {
   if (!candidate) {
     return (
-      <div className="candidate-list-item loading">
+      <div className="candidate-item loading">
         <div className="candidate-skeleton">
-          <div className="skeleton-avatar"></div>
-          <div className="skeleton-content">
-            <div className="skeleton-line skeleton-name"></div>
-            <div className="skeleton-line skeleton-email"></div>
-          </div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line short"></div>
         </div>
       </div>
     );
   }
 
-  const getStageColor = (stage) => {
-    const colors = {
-      applied: '#3182ce',
-      screen: '#d53f8c',
-      tech: '#dd6b20',
-      offer: '#38a169',
-      hired: '#319795',
-      rejected: '#e53e3e'
-    };
-    return colors[stage] || '#718096';
-  };
-
   return (
-    <div className="candidate-list-item">
-      <div className="candidate-avatar">
-        <div 
-          className="avatar-circle"
-          style={{ backgroundColor: getStageColor(candidate.stage) }}
-        >
-          {candidate.name.charAt(0).toUpperCase()}
+    <div className="candidate-item">
+      <div className="candidate-info">
+        <div className="candidate-header">
+          <h3 className="candidate-name">
+            <Link to={`/candidates/${candidate.id}`}>
+              {candidate.name}
+            </Link>
+          </h3>
+          <span className={`stage-badge stage-${candidate.stage}`}>
+            {candidate.stage}
+          </span>
+        </div>
+        <p className="candidate-email">{candidate.email}</p>
+        <div className="candidate-meta">
+          <span className="candidate-date">
+            Applied: {formatDate(candidate.appliedAt)}
+          </span>
+          {candidate.jobId && (
+            <span className="candidate-job">Job ID: {candidate.jobId}</span>
+          )}
         </div>
       </div>
-      
-      <div className="candidate-info">
-        <Link to={`/candidates/${candidate.id}`} className="candidate-name">
-          {candidate.name}
-        </Link>
-        <span className="candidate-email">{candidate.email}</span>
-      </div>
-      
-      <div className="candidate-stage">
-        <span 
-          className="stage-badge"
-          style={{ 
-            backgroundColor: `${getStageColor(candidate.stage)}20`,
-            color: getStageColor(candidate.stage)
-          }}
-        >
-          {candidate.stage}
-        </span>
-      </div>
-      
-      <div className="candidate-job">
-        <span className="job-title">Job #{candidate.jobId}</span>
-      </div>
-      
-      <div className="candidate-date">
-        <span className="date-label">Applied</span>
-        <span className="date-value">{formatDate(candidate.appliedAt)}</span>
-      </div>
-      
       <div className="candidate-actions">
         <Link 
-          to={`/candidates/${candidate.id}`} 
-          className="btn btn-sm btn-secondary"
+          to={`/candidates/${candidate.id}`}
+          className="btn btn-sm btn-outline"
         >
           View Profile
         </Link>

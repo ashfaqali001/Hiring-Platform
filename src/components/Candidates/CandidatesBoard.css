@@ -4,6 +4,92 @@
   margin: 0 auto;
 }
 
+/* Virtual List Styles */
+.candidates-virtual-list {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+}
+
+.candidate-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.candidate-item:hover {
+  background-color: #f8fafc;
+}
+
+.candidate-item.loading {
+  background-color: #f8fafc;
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-name a {
+  color: #2d3748;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.candidate-name a:hover {
+  color: #667eea;
+}
+
+.candidate-email {
+  color: #718096;
+  margin: 0.25rem 0;
+}
+
+.candidate-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #a0aec0;
+}
+
+.candidate-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Skeleton Loading */
+.candidate-skeleton {
+  padding: 0.5rem 0;
+}
+
+.skeleton-line {
+  height: 1rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .candidates-header {
   display: flex;
   justify-content: space-between;
