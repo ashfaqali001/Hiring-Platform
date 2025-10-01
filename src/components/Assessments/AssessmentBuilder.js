@@ -121,7 +121,11 @@ const AssessmentBuilder = () => {
       
       const method = assessmentId === 'new' ? 'POST' : 'PUT';
 
-      console.log('Saving assessment:', { url, method, assessment });
+      console.log('Saving assessment:', { url, method, assessment, jobId, assessmentId });
+      
+      if (!jobId) {
+        throw new Error('No job ID provided. Please select a job first.');
+      }
       
       const response = await fetch(url, {
         method,
@@ -179,6 +183,11 @@ const AssessmentBuilder = () => {
   }, [loading, saveAttempted, assessment, assessmentId, jobId, navigate]);
 
   const previewAssessment = () => {
+    console.log('Previewing assessment:', { jobId, assessmentId, assessment });
+    if (!jobId) {
+      setError('No job selected. Please select a job first.');
+      return;
+    }
     navigate(`/jobs/${jobId}/assessments/${assessmentId || 'new'}/form`);
   };
 
@@ -203,6 +212,23 @@ const AssessmentBuilder = () => {
         <div className="loading-spinner">
           <div className="spinner"></div>
           <p>Loading assessment...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no job ID
+  if (!jobId) {
+    return (
+      <div className="assessment-builder">
+        <div className="error-state">
+          <h1>Assessment Builder</h1>
+          <div className="error-message">
+            <p>No job selected. Please select a job to create an assessment.</p>
+            <Link to="/assessments" className="btn btn-primary">
+              Select Job
+            </Link>
+          </div>
         </div>
       </div>
     );

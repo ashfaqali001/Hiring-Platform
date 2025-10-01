@@ -382,6 +382,25 @@
   font-style: italic;
 }
 
+.error-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.error-message {
+  background: #fed7d7;
+  border: 1px solid #feb2b2;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+.error-message p {
+  color: #742a2a;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
 /* Button Styles */
 .btn {
   padding: 8px 16px;

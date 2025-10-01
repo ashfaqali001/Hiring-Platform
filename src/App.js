@@ -10,6 +10,7 @@ import CandidatesBoard from './components/Candidates/CandidatesBoardSimplified';
 import CandidateProfile from './components/Candidates/CandidateProfile';
 import AssessmentBuilder from './components/Assessments/AssessmentBuilder';
 import AssessmentForm from './components/Assessments/AssessmentForm';
+import AssessmentJobSelector from './components/Assessments/AssessmentJobSelector';
 
 // Database and mocking
 import { db } from './database/db';
@@ -185,6 +186,7 @@ function App() {
               <Route path="jobs/:jobId" element={<JobDetail />} />
               <Route path="candidates" element={<CandidatesBoard />} />
               <Route path="candidates/:candidateId" element={<CandidateProfile />} />
+              <Route path="assessments" element={<AssessmentJobSelector />} />
               <Route path="jobs/:jobId/assessments/:assessmentId/builder" element={<AssessmentBuilder />} />
               <Route path="jobs/:jobId/assessments/:assessmentId/form" element={<AssessmentForm />} />
             </Route>
