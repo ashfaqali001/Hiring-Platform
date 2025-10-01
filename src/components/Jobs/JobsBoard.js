@@ -253,11 +253,14 @@ const JobsBoard = () => {
       const oldIndex = filteredJobs.findIndex(job => job.id === active.id);
       const newIndex = filteredJobs.findIndex(job => job.id === over.id);
       
+      console.log('Reordering job:', active.id, 'from', oldIndex, 'to', newIndex);
+      
       const newJobs = arrayMove(filteredJobs, oldIndex, newIndex);
       setFilteredJobs(newJobs);
 
       // Optimistic update
       try {
+        console.log('Sending reorder request...');
         const response = await fetch(`/api/jobs/${active.id}/reorder`, {
           method: 'PATCH',
           headers: {
@@ -269,15 +272,38 @@ const JobsBoard = () => {
           })
         });
 
+        console.log('Reorder response:', response.status, response.ok);
+
         if (!response.ok) {
           // Rollback on failure
+          console.log('Reorder failed, rolling back...');
           setFilteredJobs(filteredJobs);
           throw new Error('Failed to reorder jobs');
+        } else {
+          console.log('Jobs reordered successfully');
         }
       } catch (err) {
-        setError(err.message);
-        // Refresh to get correct order
-        await fetchJobs();
+        console.error('Reorder error:', err);
+        
+        // Try direct database access as fallback
+        try {
+          console.log('Trying direct database reorder...');
+          const { db } = await import('../../database/db');
+          
+          // Update the order of all jobs
+          const updatedJobs = newJobs.map((job, index) => ({
+            ...job,
+            order: index
+          }));
+          
+          await db.jobs.bulkPut(updatedJobs);
+          console.log('Jobs reordered directly in database');
+        } catch (dbError) {
+          console.error('Direct database reorder failed:', dbError);
+          setError(err.message);
+          // Refresh to get correct order
+          await fetchJobs();
+        }
       }
     }
   };
@@ -315,6 +341,10 @@ const JobsBoard = () => {
         <div className="header-content">
           <h1>Jobs Board</h1>
           <p className="header-subtitle">Manage your job listings and track applications</p>
+          <div className="drag-instruction">
+            <span className="drag-icon">⋮⋮</span>
+            <span>Drag jobs by the handle to reorder them</span>
+          </div>
         </div>
         <button className="btn btn-primary" onClick={handleCreateJob}>
           <span className="btn-icon">+</span>
