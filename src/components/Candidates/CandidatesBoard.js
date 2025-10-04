@@ -387,7 +387,6 @@ const CandidatesBoard = () => {
             onChange={handleSearch}
             className="search-input"
           />
-          <span className="search-icon">🔍</span>
         </div>
         
         <div className="filters">
