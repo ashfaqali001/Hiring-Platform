@@ -64,7 +64,17 @@ const JobsBoard = () => {
           throw new Error('Invalid response format');
         }
         
-        setFilteredJobs(data.jobs || []);
+        // Filter out placeholder content and ensure data quality
+        const cleanJobs = (data.jobs || []).filter(job => 
+          job.title && 
+          job.title.length > 3 && 
+          !job.title.includes('AAAA') && 
+          !job.title.includes('Test') &&
+          job.tags && 
+          !job.tags.some(tag => tag.includes('AAAA'))
+        );
+        
+        setFilteredJobs(cleanJobs);
         setTotalPages(data.pagination?.totalPages || 1);
         setError(null);
         return;

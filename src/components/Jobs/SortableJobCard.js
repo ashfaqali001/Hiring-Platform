@@ -19,6 +19,25 @@ const SortableJobCard = ({ job, onEdit, onDelete, onArchive, formatDate, getStat
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Debug logging to identify data issues
+  console.log('Job data:', { id: job.id, title: job.title, status: job.status, tags: job.tags });
+
+  // Don't render if job has placeholder content
+  if (!job.title || job.title.includes('AAAA') || job.title.length < 3) {
+    return null;
+  }
+
+  // Ensure job has all required properties
+  const safeJob = {
+    id: job.id,
+    title: job.title || 'Untitled Job',
+    description: job.description || 'No description available',
+    status: job.status || 'active',
+    tags: job.tags || [],
+    createdAt: job.createdAt || new Date(),
+    order: job.order || 0
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -31,11 +50,14 @@ const SortableJobCard = ({ job, onEdit, onDelete, onArchive, formatDate, getStat
             <span className="drag-icon">⋮⋮</span>
           </div>
           <div className="job-title-content">
-            <Link to={`/jobs/${job.id}`} className="job-title">
-              {job.title}
+            <Link 
+              to={`/jobs/${safeJob.id}`} 
+              className="job-title"
+            >
+              {safeJob.title}
             </Link>
-            <div className={getStatusBadgeClass(job.status)}>
-              {job.status}
+            <div className={getStatusBadgeClass(safeJob.status)}>
+              {safeJob.status === 'active' ? 'Active' : 'Archived'}
             </div>
           </div>
         </div>
@@ -47,14 +69,14 @@ const SortableJobCard = ({ job, onEdit, onDelete, onArchive, formatDate, getStat
             Edit
           </button>
           <button
-            className={`btn btn-sm ${job.status === 'active' ? 'btn-warning' : 'btn-success'}`}
-            onClick={() => onArchive(job.id, job.status === 'active' ? 'archived' : 'active')}
+            className={`btn btn-sm ${safeJob.status === 'active' ? 'btn-warning' : 'btn-success'}`}
+            onClick={() => onArchive(safeJob.id, safeJob.status === 'active' ? 'archived' : 'active')}
           >
-            {job.status === 'active' ? 'Archive' : 'Unarchive'}
+            {safeJob.status === 'active' ? 'Archive' : 'Unarchive'}
           </button>
           <button
             className="btn btn-danger btn-sm"
-            onClick={() => onDelete(job.id)}
+            onClick={() => onDelete(safeJob.id)}
           >
             Delete
           </button>
@@ -62,11 +84,11 @@ const SortableJobCard = ({ job, onEdit, onDelete, onArchive, formatDate, getStat
       </div>
 
       <div className="job-card-content">
-        <p className="job-description">{job.description}</p>
+        <p className="job-description">{safeJob.description}</p>
         
-        {job.tags && job.tags.length > 0 && (
+        {safeJob.tags && safeJob.tags.length > 0 && (
           <div className="job-tags">
-            {job.tags.map((tag, index) => (
+            {safeJob.tags.map((tag, index) => (
               <span key={index} className="job-tag">
                 {tag}
               </span>
@@ -76,10 +98,7 @@ const SortableJobCard = ({ job, onEdit, onDelete, onArchive, formatDate, getStat
         
         <div className="job-meta">
           <span className="job-date">
-            Created: {formatDate(job.createdAt)}
-          </span>
-          <span className="job-order">
-            Order: #{job.order + 1}
+            Created: {formatDate(safeJob.createdAt)}
           </span>
         </div>
       </div>

@@ -142,12 +142,33 @@ function App() {
         const existingJobs = await db.jobs.count();
         console.log('Existing jobs count:', existingJobs);
         
-        if (existingJobs === 0) {
-          console.log('Seeding database...');
+        // Check for placeholder content and reseed if needed
+        const jobs = await db.jobs.toArray();
+        const hasPlaceholderContent = jobs.some(job => 
+          job.title.includes('AAAA') || 
+          job.title.includes('Test') || 
+          job.title.length < 3 ||
+          job.tags.some(tag => tag.includes('AAAA'))
+        );
+        
+        if (existingJobs === 0 || hasPlaceholderContent) {
+          console.log('Clearing database and seeding with clean data...');
+          // Clear all data first
+          await db.jobs.clear();
+          await db.candidates.clear();
+          await db.assessments.clear();
+          await db.assessmentResponses.clear();
+          
           await seedDatabase(db);
           console.log('Database seeded successfully');
         } else {
           console.log('Database already seeded with', existingJobs, 'jobs');
+        }
+        
+        // Force refresh the page to ensure clean data is loaded
+        if (hasPlaceholderContent) {
+          console.log('Refreshing page to load clean data...');
+          window.location.reload();
         }
         
         // Verify candidates exist
